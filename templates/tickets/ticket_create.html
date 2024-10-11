@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Ticket{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Create Ticket</h1>
+
+    <form method="POST" action="{% url 'ticket_create' %}" enctype="multipart/form-data"> 
+        {% csrf_token %}
+
+        <div class="row mb-3">
+
+            <div class="col-md-6">
+                <label for="id_assigned_to" class="form-label">Assign to:</label>
+                <select name="assigned_to" id="id_assigned_to" class="form-control">
+                    <option value="">Select User</option>
+                    {% for user in form.fields.assigned_to.queryset %}
+                        <option value="{{ user.id }}" {% if user.id == form.data.assigned_to %}selected{% endif %}>
+                            {{ user.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="id_ticket_customer" class="form-label">Customer:</label>
+                <select name="ticket_customer" id="id_ticket_customer" class="form-control">
+                    <option value="">Select Customer</option>
+                    {% for customer in form.fields.ticket_customer.queryset %}
+                        <option value="{{ customer.id }}" {% if customer.id == form.data.ticket_customer %}selected{% endif %}>
+                            {{ customer.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+
+            <div class="col-md-6">
+                <label for="id_ticket_customer_product" class="form-label">Product:</label>
+                <select name="ticket_customer_product" id="id_ticket_customer_product" class="form-control">
+                    <option value="">Select Product</option>
+                    {% for product in form.fields.ticket_customer_product.queryset %}
+                        <option value="{{ product.id }}" {% if product.id == form.data.ticket_customer_product %}selected{% endif %}>
+                            {{ product.product.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="id_subject" class="form-label">Subject:</label>
+                <input type="text" name="subject" id="id_subject" class="form-control" value="{{ form.subject.value }}">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="id_description" class="form-label">Description:</label>
+            <textarea name="description" id="id_description" class="form-control">{{ form.description.value }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="id_attachment" class="form-label">Attachment:</label>
+            <input type="file" name="attachment" id="id_attachment" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Ticket</button>
+    </form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+
+    $('#id_ticket_customer').change(function() {
+        var customerId = $(this).val();  
+        var url = "{% url 'get_customer_products' %}";  
+
+        $.ajax({
+            url: url,
+            data: {
+                'customer_id': customerId
+            },
+            success: function(data) {
+                var productSelect = $('#id_ticket_customer_product');
+                productSelect.empty();  
+
+                if (data.length === 0) {
+                    productSelect.append('<option value="">No products available</option>');
+                } else {
+                    productSelect.append('<option value="">Select Product</option>');
+                    $.each(data, function(index, item) {
+                        productSelect.append('<option value="' + item.id + '">' + item.product__name + '</option>');
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+</div>
+{% endblock %}

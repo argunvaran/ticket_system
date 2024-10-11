@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket Search{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Search Tickets</h1>
+    <form method="GET" action="{% url 'ticket_search' %}">
+        <div class="mb-3">
+            <label for="query" class="form-label">Search by keyword:</label>
+            <input type="text" class="form-control" id="query" name="q" placeholder="Enter keyword..." value="{{ query }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    {% if query %}
+        {% if tickets %}
+            <h2 class="mt-4">Search Results</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Subject</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Actions</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>{{ ticket.id }}</td>
+                        <td>{{ ticket.subject }}</td>
+                        <td>{{ ticket.description|slice:":50" }}{% if ticket.description|length > 50 %}...{% endif %}</td>
+                        <td>{{ ticket.status }}</td>
+                        <td>{{ ticket.ticket_customer.name }}</td>  
+                        <td>
+                            {% if ticket.ticket_customer_product %}
+                                {{ ticket.ticket_customer_product.product.name }} 
+                            {% else %}
+                                No product assigned
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'ticket_search_detail' ticket.id %}" class="btn btn-info">Detail</a> 
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No results found for "{{ query }}".</p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

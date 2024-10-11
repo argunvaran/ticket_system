@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4>{{ ticket.subject }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">  
+                {% csrf_token %}
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="subject" class="form-label">Subject:</label>
+                        <input type="text" class="form-control" id="subject" name="subject" value="{{ form.subject.value }}">
+                    </div>
+                    
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="ticket_customer" class="form-label">Customer:</label>
+                        {{ form.ticket_customer }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="ticket_customer_product" class="form-label">Product:</label>
+                        {{ form.ticket_customer_product }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="assigned_to" class="form-label">Assigned To:</label>
+                        <select id="assigned_to" class="form-select" name="assigned_to">
+                            {% for user in form.assigned_to.field.queryset %}
+                                <option value="{{ user.id }}" {% if user.id == form.assigned_to.value %}selected{% endif %}>
+                                    {{ user.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="description" class="form-label">Description:</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ form.description.value }}</textarea>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="solution_description" class="form-label">Solution description:</label>
+                    <textarea class="form-control" id="solution_description" name="solution_description" rows="3">{{ form.solution_description.value }}</textarea>
+                </div>
+
+                <div class="row mb-3">
+                    
+                    <div class="col-md-4">
+                        <label for="effort" class="form-label">Effort (in hours):</label>
+                        <input type="number" class="form-control" id="effort" name="effort" step="0.01" value="{{ form.effort.value }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Status:</label>
+                        <select id="status" class="form-select" name="status">
+                            <option value="pending" {% if ticket.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <h5>Attachments:</h5>
+                        {% if attachments %}
+                            <ul>
+                                {% for attachment in attachments %}
+                                    <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No attachments found for this ticket.</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 text-end">
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </div>
+                    <div class="col-md-6 text-start">
+
+                        <form method="get" action="{% url 'ticket_confirm_delete' ticket.id %}">
+                            <a href="{% url 'ticket_confirm_delete' ticket.id %}" class="btn btn-danger">Delete Ticket</a>
+                        </form>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+
+    $('#id_ticket_customer').change(function() {
+        var customerId = $(this).val();  
+        var url = "{% url 'get_customer_products' %}";  
+
+        $.ajax({
+            url: url,
+            data: {
+                'customer_id': customerId  
+            },
+            success: function(data) {
+                var productSelect = $('#id_ticket_customer_product');
+                productSelect.empty();  
+
+                if (data.length === 0) {
+                    productSelect.append('<option value="">No products available</option>');
+                } else {
+                    productSelect.append('<option value="">Select Product</option>');
+
+                    $.each(data, function(index, item) {
+                        productSelect.append('<option value="' + item.id + '">' + item.product__name + '</option>');
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4>{{ ticket.subject }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" class="readonly"> 
+                {% csrf_token %}
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="subject" class="form-label">Subject:</label>
+                        <p class="form-control">{{ ticket.subject }}</p> 
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customer" class="form-label">Customer:</label>
+                        <p class="form-control">{{ ticket.ticket_customer.name }}</p> 
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="description" class="form-label">Description:</label>
+                        <p class="form-control">{{ ticket.description }}</p> 
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="solution_description" class="form-label">Solution description:</label>
+                    <p class="form-control">{{ ticket.solution_description }}</p>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="assigned_to" class="form-label">Assigned To:</label>
+                        <p class="form-control">{% if ticket.assigned_to %}{{ ticket.assigned_to.username }}{% else %}Unassigned{% endif %}</p> 
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="customer_product" class="form-label">Product:</label>
+                        <p class="form-control">{{ ticket.ticket_customer_product.product.name }}</p> 
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="effort" class="form-label">Effort (in hours):</label>
+                        <p class="form-control">{{ ticket.effort }}</p> 
+                    </div>
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">Status:</label>
+                        <p class="form-control">{% if ticket.status == 'pending' %}Pending{% else %}Resolved{% endif %}</p> 
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

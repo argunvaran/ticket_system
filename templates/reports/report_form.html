@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Generate Report</h1>
+    <form method="GET" action="{% url 'report_view' %}">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Start Date:</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">End Date:</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="status" class="form-label">Status:</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="all">All</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="resolved" {% if request.GET.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="customer" class="form-label">Customer:</label>
+                <select class="form-select" id="customer" name="customer">
+                    <option value="all">All</option>
+                    <option value="none" {% if request.GET.customer == 'none' %}selected{% endif %}>None</option> 
+                    {% for customer in customers %}
+                        <option value="{{ customer.id }}" {% if customer.id|stringformat:"s" == request.GET.customer %}selected{% endif %}>{{ customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="product" class="form-label">Product:</label>
+                <select class="form-select" id="product" name="product">
+                    <option value="all">All</option>
+                    <option value="none" {% if request.GET.product == 'none' %}selected{% endif %}>None</option> 
+                    {% for product in products %}
+                        <option value="{{ product.product__id }}" {% if product.product__id|stringformat:"s" == request.GET.product %}selected{% endif %}>{{ product.product__name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="assigned_to" class="form-label">Assigned To:</label>
+                <select class="form-select" id="assigned_to" name="assigned_to">
+                    <option value="all">All</option>
+                    <option value="none" {% if request.GET.assigned_to == 'none' %}selected{% endif %}>None</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}" {% if user.id|stringformat:"s" == request.GET.assigned_to %}selected{% endif %}>{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+
+
+        <button type="submit" class="btn btn-primary">Generate</button>
+        <button type="submit" name="export" class="btn btn-success">Export to Excel</button>
+    </form>
+
+    <hr>
+
+    {% if page_obj %}
+        <h2>Report Results</h2>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Description</th>
+                    <th>Solution Description</th>
+                    <th>Effort</th> 
+                    <th>Assigned To</th>  <!-- Assigned To sütunu eklendi -->
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in page_obj %}
+                <tr class="{% if ticket.status == 'pending' %} table-warning {% elif ticket.status == 'resolved' %} table-success {% endif %}">
+                    <td>{{ ticket.subject }}</td>
+                    <td>{{ ticket.description }}</td>
+                    <td>{{ ticket.solution_description }}</td>
+                    <td>{{ ticket.effort }}</td>
+                    <td>
+                        {% if ticket.assigned_to %}
+                            {{ ticket.assigned_to.username }}
+                        {% else %}
+                            Unassigned
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ticket.ticket_customer %}
+                            {{ ticket.ticket_customer.name }}
+                        {% else %}
+                            No customer
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ticket.ticket_customer_product %}
+                            {{ ticket.ticket_customer_product.product.name }}
+                        {% else %}
+                            No product
+                        {% endif %}
+                    </td>
+                    <td>{{ ticket.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <p>No tickets found. Please use the filters above to search for tickets.</p>
+    {% endif %}
+</div>
+{% endblock %}

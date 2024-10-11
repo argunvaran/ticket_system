@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Are you sure you want to delete this ticket?</h1>
+    <p><strong>Subject:</strong> {{ ticket.subject }}</p>
+    <form method="POST" action="{% url 'ticket_confirm_delete' ticket.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{% url 'all_tickets' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
